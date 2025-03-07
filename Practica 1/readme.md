@@ -1,4 +1,4 @@
-# Sistema de Alerta y Visualización de Sismos - Gestión de Usuarios 
+# Sistema de Gestión de Usuarios con Spring Boot
 
 ## Descripción del Proyecto
 Este es un proyecto de aplicación web de gestión de usuarios desarrollado con Spring Boot, que incluye funcionalidades de autenticación, registro, perfil de usuario y administración.
@@ -99,7 +99,3 @@ mvn test
 - Manejo de errores personalizado
 
 ## Capturas de pantalla
-![image](https://github.com/user-attachments/assets/c7a48bff-90ba-4895-861f-49c47c811560)
-
-![image](https://github.com/user-attachments/assets/18522cc3-f3db-4bb6-a787-a0d2b832911d)
-
