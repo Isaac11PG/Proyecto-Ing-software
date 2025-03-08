@@ -12,7 +12,7 @@ import java.sql.SQLException;
 public class MySQLController {
 
     // Parámetros de conexión
-    private static final String URL = "jdbc:mysql://localhost:3306/tarea2?useSSL=false&serverTimezone=UTC";
+    private static final String URL = "jdbc:mysql://localhost:3306/practica1?useSSL=false&serverTimezone=UTC";
     private static final String USER = "admin"; // Usuario de la base de datos
     private static final String PASSWORD = "admin"; // Contraseña de la base de datos
 
