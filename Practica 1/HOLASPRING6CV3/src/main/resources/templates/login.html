@@ -16,6 +16,10 @@
         .gradient-custom {
             background: url('https://startbootstrap.github.io/startbootstrap-grayscale/assets/img/bg-masthead.jpg') no-repeat center center fixed;
             background-size: cover;
+            height: 100vh; /* Se asegura de que el fondo cubra toda la altura de la pantalla */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         /* Estilo del contenedor de la tarjeta */
@@ -23,6 +27,17 @@
             border-radius: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             transition: transform 0.3s ease-in-out;
+            max-width: 90%; /* Evita que la tarjeta se expanda demasiado en pantallas grandes */
+            max-height: 90vh; /* Evita que la tarjeta se expanda más allá de la altura de la ventana */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Asegurar que el contenido de la tarjeta no cause desbordamiento */
+        .card-body {
+            overflow-y: auto;
+            padding: 2rem;
         }
 
         .card-custom:hover {
@@ -74,27 +89,67 @@
         /* Estilo para la imagen dentro de la tarjeta */
         .card-img-left {
             width: 100%;
-            height: auto;
+            height: 100%;
+            object-fit: contain; /* Asegura que la imagen no se estire y mantenga sus proporciones */
+            object-position: center; /* Centra la imagen dentro del contenedor */
             border-top-left-radius: 1rem;
             border-bottom-left-radius: 1rem;
-            object-fit: cover;
-            height: 100%;
-        }
-
-        .row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Aumentar el tamaño del contenedor */
-        .col-lg-10, .col-md-12 {
-            max-width: 90% !important; /* Aumentamos el tamaño del contenedor */
         }
 
         /* Asegurar que la imagen se ajuste mejor */
         .col-md-6 {
-            flex: 0 0 50%;
+            flex: 0 0 50%; /* Esto asegura que la imagen y el formulario tengan el mismo espacio */
+            height: auto;
+            display: flex;
+            justify-content: center; /* Centra la imagen */
+            align-items: center; /* Centra la imagen verticalmente */
+        }
+
+        /* Ajustar el comportamiento de la columna */
+        .col-lg-10, .col-md-12 {
+            max-width: 90% !important; /* Aumentamos el tamaño del contenedor */
+        }
+
+        /* Hacer que el formulario se ajuste correctamente en pantallas pequeñas */
+        @media (max-width: 768px) {
+            .card-custom {
+                max-width: 100% !important; /* Asegura que la tarjeta ocupe todo el ancho en pantallas pequeñas */
+                height: auto;
+            }
+
+            .col-md-6 {
+                flex: 0 0 100%; /* La imagen y el formulario ocupan el 100% del espacio disponible */
+                height: auto;
+            }
+
+            .btn-custom {
+                width: 100%; /* Asegura que el botón de ingresar ocupe todo el ancho */
+                padding: 15px; /* Asegura que el botón sea lo suficientemente grande */
+            }
+
+            .card-body {
+                padding: 1rem; /* Menos relleno para evitar que se desborde */
+            }
+
+            .form-outline {
+                margin-bottom: 1.5rem; /* Menor espacio entre los campos */
+            }
+
+            /* Reducir la fuente para pantallas muy pequeñas */
+            .form-label {
+                font-size: 1rem; /* Reducir el tamaño de la fuente */
+            }
+        }
+
+        /* Ajustar el tamaño y visibilidad en pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .form-label {
+                font-size: 0.9rem; /* Reducir aún más el tamaño de la fuente */
+            }
+
+            .card-body {
+                padding: 0.5rem;
+            }
         }
 
     </style>
@@ -107,7 +162,7 @@
                 <div class="col-12 col-md-12 col-lg-10 col-xl-8"> <!-- Aumentamos el tamaño de las columnas -->
                     <div class="card bg-dark text-white card-custom" style="border-radius: 1rem;">
                         <div class="row g-0">
-                            <div class="col-md-6">
+                            <div class="col-md-6 d-none d-md-block">
                                 <img src="https://cdn.unotv.com/images/2023/04/sismos-mapa-muestra-las-entidades-de-mexico-con-mas-riesgo-132238.jpg" class="card-img-left" alt="Mapa de sismos">
                             </div>
                             <div class="col-md-6">
