@@ -1,9 +1,9 @@
 -- Eliminar la base de datos "tarea2" si ya existe
-DROP DATABASE IF EXISTS tarea2;
+DROP DATABASE IF EXISTS practica1;
 -- Crear la base de datos "tarea2" con codificación UTF-8
-CREATE DATABASE tarea2 CHARACTER SET utf8 COLLATE utf8_general_ci;
--- Usar la base de datos "tarea2"
-USE tarea2;
+CREATE DATABASE practica1 CHARACTER SET utf8 COLLATE utf8_general_ci;
+-- Usar la base de datos "practica1"
+USE practica1;
 -- Crear la tabla de usuarios
 CREATE TABLE usuarios (
 id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -33,6 +33,6 @@ FLUSH PRIVILEGES;
 -- Crear el usuario 'admin' con la contraseña 'admin'
 CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
 -- Otorgar todos los permisos sobre la base de datos "tarea2" al usuario 'admin'
-GRANT ALL PRIVILEGES ON tarea2.* TO 'admin'@'localhost';
+GRANT ALL PRIVILEGES ON practica1.* TO 'admin'@'localhost';
 -- Aplicar los cambios
 FLUSH PRIVILEGES;
