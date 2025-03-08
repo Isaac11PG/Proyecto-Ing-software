@@ -114,8 +114,11 @@
                                 <div class="card-body p-5 text-center">
 
                                     <!-- Mostrar mensaje de error o éxito -->
-                                    <div th:if="${mensaje}" th:class="${error} ? 'alert alert-danger' : 'alert alert-success'" th:text="${mensaje}">
-                                        Mensaje
+                                    <div th:if="${param.error}" class="alert alert-danger">
+                                        Usuario o contraseña incorrectos
+                                    </div>
+                                    <div th:if="${param.logout}" class="alert alert-success">
+                                        Sesión cerrada correctamente
                                     </div>
 
                                     <div class="mb-md-5 mt-md-4 pb-5">
