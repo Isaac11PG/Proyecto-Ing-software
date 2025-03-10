@@ -1,6 +1,7 @@
 package com.holamundo.HOLASPRING6CV3.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,9 +46,7 @@ public class UsuarioService {
     // Método de registro (sin cambios)
     public boolean registrarUsuario(String usuario, String email, String password) {
         try {
-            if (userRepository.findByUsername(usuario).isPresent()) {
-                return false;
-            }
+
 
             UserModel nuevoUsuario = new UserModel();
             nuevoUsuario.setUsername(usuario);
@@ -96,6 +95,40 @@ public class UsuarioService {
             userRepository.save(usuario);
             return true;
         }
+        return false;
+    }
+
+    public boolean cambiarContrasena(String username, String contrasenaActual, String contrasenaNueva) {
+        // Buscar el usuario
+        UserModel usuario = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        // Verificar la contraseña actual
+        if (!passwordEncoder.matches(contrasenaActual, usuario.getPassword())) {
+            return false; // Contraseña actual incorrecta
+        }
+        
+        // Encriptar y guardar nueva contraseña
+        usuario.setPassword(passwordEncoder.encode(contrasenaNueva));
+        userRepository.save(usuario);
+        return true;
+    }
+
+    public boolean actualizarPasswordAdmin(String contrasenaNueva, String username) {
+        // Buscar el usuario
+        Optional<UserModel> usuarioOpt = userRepository.findByUsername(username);
+        
+        // Encriptar y guardar nueva contraseña
+        if (usuarioOpt.isPresent()){
+            UserModel usuario = usuarioOpt.get();
+            usuario.setPassword(passwordEncoder.encode(contrasenaNueva));
+            userRepository.save(usuario);
+            System.out.println("Contraseña actualizada para el usuario: " + username);
+            return true;
+        }
+
+
+        System.out.println("Usuario no encontrado" + username);
         return false;
     }
 }
