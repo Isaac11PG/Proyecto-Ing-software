@@ -103,3 +103,5 @@ mvn test
 
 ![image](https://github.com/user-attachments/assets/18522cc3-f3db-4bb6-a787-a0d2b832911d)
 
+## Uso de ClickUp como herramienta de gestión del esfuerzo del equipo
+![image](https://github.com/user-attachments/assets/f3ca9021-a95e-47bc-8f70-86ac6ffe21ed)
