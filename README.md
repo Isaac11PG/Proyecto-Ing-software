@@ -1,2 +1,2 @@
-# Prácticas-Ing-software
-Prácticas de la materia de ingeniería de software 
+# Proyecto-Ing-software
+Proyecto de la materia de ingeniería de software 
