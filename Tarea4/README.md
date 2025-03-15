@@ -22,4 +22,5 @@ El documento cubre aspectos esenciales del desarrollo de software, incluyendo:
  ```
 
  ## Uso de ClickUp
+![image](https://github.com/user-attachments/assets/375e28f1-b485-4aa8-8d74-3cf26a872d39)
 
