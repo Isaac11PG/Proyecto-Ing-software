@@ -1,0 +1,26 @@
+package com.sismo.repository.graph;
+
+import com.sismo.model.graph.SismoNode;
+import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface SismoNodeRepository extends Neo4jRepository<SismoNode, Long> {
+    
+    List<SismoNode> findByMagnitudGreaterThan(Double magnitud);
+    
+    @Query("MATCH (s:Sismo) WHERE s.magnitud > $magnitud RETURN s")
+    List<SismoNode> buscarPorMagnitudMayorQue(@Param("magnitud") Double magnitud);
+    
+    @Query("MATCH (s:Sismo) " +
+           "WHERE distance(point({latitude: s.latitud, longitude: s.longitud}), " +
+           "point({latitude: $lat, longitude: $lon})) <= $distanciaKm * 1000 " +
+           "RETURN s")
+    List<SismoNode> buscarSismosCercanos(@Param("lat") Double latitud, 
+                                         @Param("lon") Double longitud, 
+                                         @Param("distanciaKm") Integer distanciaKm);
+}
