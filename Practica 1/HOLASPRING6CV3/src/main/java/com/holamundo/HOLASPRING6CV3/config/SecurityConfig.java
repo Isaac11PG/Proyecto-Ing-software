@@ -18,6 +18,7 @@ public class SecurityConfig {
               // Deshabilita CSRF (Opcional, pero revisa si lo necesitas)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/registro", "/login", "/testConnection", "/css/**", "/js/**").permitAll() // Permitir acceso a login y registro
+                .requestMatchers("/sismos/subir","/sismos").permitAll()
                 .requestMatchers("/cambiar-tema").authenticated()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/user/**").hasRole("USER")
