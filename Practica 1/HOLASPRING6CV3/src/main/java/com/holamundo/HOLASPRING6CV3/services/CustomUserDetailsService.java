@@ -22,20 +22,13 @@ public class CustomUserDetailsService implements org.springframework.security.co
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Buscar el usuario en la base de datos
-        UserModel userModel = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    UserModel userModel = userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
-        // Convertir los roles del usuario en una lista de SimpleGrantedAuthority
-        List<SimpleGrantedAuthority> authorities = userModel.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toList());
+    // Aquí ya no necesitas mapear las autoridades manualmente,
+    // porque tu CustomUserDetails lo hace solito en getAuthorities()
+    return new CustomUserDetails(userModel);
+}
 
-        // Retornar el usuario con credenciales y roles
-        return User.withUsername(userModel.getUsername())
-                .password(userModel.getPassword()) // Contraseña ya encriptada en la BD
-                .authorities(authorities) // Asignar lista de roles correctamente
-                .build();
-    }
 }

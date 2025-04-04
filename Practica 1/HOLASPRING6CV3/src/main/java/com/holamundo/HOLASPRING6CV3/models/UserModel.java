@@ -19,6 +19,15 @@ public class UserModel {
     private String email;
     
     private String password;
+    private String theme = "system";
+
+    public String getTheme() {
+        return theme;
+    }
+    
+    public void setTheme(String theme) {
+        this.theme = theme;
+    }
 
     // Relación Many-to-Many con Role
     @ManyToMany(fetch = FetchType.EAGER)

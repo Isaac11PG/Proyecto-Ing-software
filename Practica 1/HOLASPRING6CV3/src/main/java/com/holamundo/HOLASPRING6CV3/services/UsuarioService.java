@@ -43,6 +43,19 @@ public class UsuarioService {
         return false;
     }
 
+    //Metodo para el tema
+    public boolean actualizarTema(String username, String tema) {
+        Optional<UserModel> usuarioOpt = userRepository.findByUsername(username);
+        
+        if (usuarioOpt.isPresent()) {
+            UserModel usuario = usuarioOpt.get();
+            usuario.setTheme(tema);
+            userRepository.save(usuario);
+            return true;
+        }
+        return false;
+    }
+
     // Método de registro (sin cambios)
     public boolean registrarUsuario(String usuario, String email, String password) {
         try {

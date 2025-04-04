@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SismoTrack - Monitoreo de Sismos en Tiempo Real</title>
-
+    <!-- Tema CSS -->
+<link href="/css/themes.css" rel="stylesheet">
+<!-- CSRF Token para solicitudes fetch -->
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <!-- CDN de Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 
@@ -13,138 +17,153 @@
 
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #e74c3c;
-            --accent-color: #f39c12;
-        }
-        
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
-        }
-        
-        .navbar-custom {
-            background-color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .hero-section {
-            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/api/placeholder/1200/675');
-            background-size: cover;
-            background-position: center;
-            color: white;
-            padding: 100px 0;
-            margin-bottom: 30px;
-        }
-        
-        .feature-card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-            height: 100%;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .feature-icon {
-            font-size: 2.5rem;
-            color: var(--secondary-color);
-            margin-bottom: 15px;
-        }
-        
-        .btn-custom {
-            background-color: var(--secondary-color);
-            border: none;
-            padding: 10px 25px;
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-custom:hover {
-            background-color: #c0392b;
-            transform: scale(1.05);
-        }
-        
-        .alert-section {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 15px 0;
-            margin-bottom: 30px;
-        }
-        
-        .latest-earthquakes {
-            margin-bottom: 40px;
-        }
-        
-        .earthquake-card {
-            border-left: 4px solid var(--secondary-color);
-            margin-bottom: 15px;
-        }
-        
-        .magnitude {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--secondary-color);
-        }
-        
-        .footer {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 30px 0;
-        }
-        
-        .user-panel {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 30px;
-        }
+    --primary-color: #2c3e50;
+    --secondary-color: #e74c3c;
+    --accent-color: #f39c12;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-custom {
+    background-color: var(--navbar-bg);
+    color: var(--navbar-text);
+}
+
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('/api/placeholder/1200/675');
+    background-size: cover;
+    background-position: center;
+    color: var(--text-color);
+}
+
+.feature-card {
+    background-color: var(--card-bg);
+    border: none;
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    height: 100%;
+    color: var(--text-color);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+}
+
+.btn-custom {
+    background-color: var(--secondary-color);
+    border: none;
+    padding: 10px 25px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+    background-color: #c0392b;
+    transform: scale(1.05);
+}
+
+.alert-section {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 15px 0;
+    margin-bottom: 30px;
+}
+
+.latest-earthquakes {
+    margin-bottom: 40px;
+}
+
+.earthquake-card {
+    background-color: var(--card-bg);
+    border-left: 4px solid var(--secondary-color);
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.magnitude {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+.footer {
+    background-color: var(--footer-bg);
+    color: var(--footer-text);
+    padding: 30px 0;
+}
+
+.user-panel {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+    padding: 20px;
+    margin-bottom: 30px;
+    color: var(--text-color);
+}
+
+/* Section titles */
+h2, h4, h5 {
+    color: var(--text-color);
+}
+
     </style>
 </head>
-<body>
+<body th:class="'theme-' + (${#authentication != null} ? ${#authentication.principal.theme} : 'system')"
+      th:data-user-logged-in="${#authentication != null}">
+
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-seismograph"></i> SismoTrack
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/mapa">Mapa de Sismos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/estadisticas">Estadísticas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/alertas">Sistema de Alertas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/informacion">Información</a>
-                    </li>
-                </ul>
-                <div class="d-flex">
-                    <a href="/perfil" class="btn btn-outline-light me-2">
-                        <i class="fas fa-user"></i> Mi Perfil
-                    </a>
-                    <a href="/logout" class="btn btn-outline-danger">
-                        <i class="fas fa-sign-out-alt"></i> Salir
-                    </a>
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-seismograph"></i> SismoTrack
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <!-- Elementos existentes... -->
+            </ul>
+            <div class="d-flex align-items-center">
+                <!-- Selector de tema -->
+                <div class="theme-selector me-3">
+                    <div class="theme-options">
+                        <div class="theme-option" data-theme="light" title="Tema claro">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                        <div class="theme-option" data-theme="dark" title="Tema oscuro">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <div class="theme-option" data-theme="system" title="Tema del sistema">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                    </div>
                 </div>
+                
+                <a href="/perfil" class="btn btn-outline-light me-2">
+                    <i class="fas fa-user"></i> Mi Perfil
+                </a>
+                <a href="/logout" class="btn btn-outline-danger">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </a>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <!-- Alert Section -->
     <div class="alert-section">
@@ -369,5 +388,7 @@
 
     <!-- CDN de Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Script de tema -->
+<script src="/js/theme.js"></script>
 </body>
 </html>
