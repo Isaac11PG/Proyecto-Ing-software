@@ -47,4 +47,9 @@ public class Sismo {
 
     @Column(name = "estatus")
     private String estatus;
+<<<<<<< HEAD
 }
+=======
+}
+
+>>>>>>> 5661a81e0d3db14a87a285fc409d6a776e5de8a8
