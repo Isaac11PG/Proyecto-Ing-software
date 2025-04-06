@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,3 +54,4 @@ public class SismoController {
         return ResponseEntity.accepted().body("Archivo recibido. Procesamiento iniciado en segundo plano.");
     }
 }
+
