@@ -114,3 +114,9 @@ mvn test
 
 ## Capturas de pantalla
 
+![image](https://github.com/user-attachments/assets/572646bc-ac23-415e-9c7b-93082e79647d)
+
+![image](https://github.com/user-attachments/assets/e41c1457-1006-4e9f-8a38-1857a637eaba)
+
+![image](https://github.com/user-attachments/assets/cdd814ac-579c-4c33-8ec9-2454d0971d7f)
+
