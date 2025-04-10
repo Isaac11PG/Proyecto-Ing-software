@@ -7,14 +7,9 @@ const SismosTable = () => {
     const [sismos, setSismos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-<<<<<<< HEAD
     const [magnitudFiltro, setMagnitudFiltro] = useState(5); // Valor por defecto: 5
 
     // Estilos en línea (mantenidos como en tu código original)
-=======
-
-    // Estilos en línea
->>>>>>> 5661a81e0d3db14a87a285fc409d6a776e5de8a8
     const styles = {
         table: {
             width: '100%',
@@ -47,7 +42,6 @@ const SismosTable = () => {
             padding: '20px',
             maxWidth: '1200px',
             margin: '0 auto'
-<<<<<<< HEAD
         },
         filterContainer: {
             marginBottom: '20px',
@@ -73,21 +67,10 @@ const SismosTable = () => {
     const cargarSismos = () => {
         setLoading(true);
         // Usar el endpoint de filtro por magnitud
-        const endpointURL = `${API_URL}/magnitud/${magnitudFiltro}`;
+        const endpointURL = `${API_URL}api/sismos/magnitud/${magnitudFiltro}`;
         console.log("Obteniendo datos de:", endpointURL);
         
         axios.get(endpointURL)
-=======
-        }
-    };
-
-    useEffect(() => {
-        // Agrega console.log para depurar
-        console.log("Intentando obtener datos de:", API_URL);
-        
-        setLoading(true);
-        axios.get(API_URL)
->>>>>>> 5661a81e0d3db14a87a285fc409d6a776e5de8a8
             .then(response => {
                 console.log("Datos recibidos:", response.data);
                 setSismos(response.data);
@@ -98,7 +81,6 @@ const SismosTable = () => {
                 setError(`Error: ${error.message}`);
                 setLoading(false);
             });
-<<<<<<< HEAD
     }
 
     useEffect(() => {
@@ -116,18 +98,10 @@ const SismosTable = () => {
     if (loading) return <div style={styles.container}>Cargando datos de sismos...</div>;
     if (error) return <div style={{...styles.container, ...styles.error}}>{error}</div>;
     if (sismos.length === 0) return <div style={styles.container}>No hay registros de sismos con magnitud mayor a {magnitudFiltro}.</div>;
-=======
-    }, []);
-
-    if (loading) return <div style={styles.container}>Cargando datos de sismos...</div>;
-    if (error) return <div style={{...styles.container, ...styles.error}}>{error}</div>;
-    if (sismos.length === 0) return <div style={styles.container}>No hay registros de sismos para mostrar.</div>;
->>>>>>> 5661a81e0d3db14a87a285fc409d6a776e5de8a8
 
     return (
         <div style={styles.container}>
             <h2>Lista de Sismos</h2>
-<<<<<<< HEAD
             
             <div style={styles.filterContainer}>
                 <label>Magnitud mínima:</label>
@@ -142,8 +116,6 @@ const SismosTable = () => {
                 <button onClick={aplicarFiltro} style={styles.button}>Aplicar Filtro</button>
             </div>
             
-=======
->>>>>>> 5661a81e0d3db14a87a285fc409d6a776e5de8a8
             <p>Total de registros: {sismos.length}</p>
             <table style={styles.table}>
                 <thead>

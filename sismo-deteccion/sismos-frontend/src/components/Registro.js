@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import API_URL from '../config';
 
 const Register = () => {
   const [nombre, setNombre] = useState('');
@@ -11,7 +12,7 @@ const Register = () => {
   const [error, setError] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {    
     e.preventDefault();
     if (password !== confirmPassword) {
       setMensaje('Las contraseñas no coinciden');
@@ -19,13 +20,26 @@ const Register = () => {
       return;
     }
     try {
-      const response = await axios.post('/api/registro', { nombre, email, password, confirmPassword });
-      setMensaje('Registro exitoso. Ahora puedes iniciar sesión.');
-      setError(false);
-      // Redirigir al login después de un breve retraso para que el usuario pueda leer el mensaje de éxito
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      // Enviar como JSON, porque ahora el backend espera un @RequestBody
+      const response = await axios.post(`${API_URL}/api/registro`, {
+        nombre, // Se mantiene como "nombre" aquí
+        email,
+        password,
+        confirmPassword
+      });
+      
+      // Manejar la respuesta del backend
+      if (response.data && !response.data.error) {
+        setMensaje(response.data.mensaje || 'Registro exitoso. Ahora puedes iniciar sesión.');
+        setError(false);
+        // Redirigir al login después de un breve retraso
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setMensaje(response.data.mensaje || 'Error en el registro');
+        setError(true);
+      }
     } catch (error) {
       setMensaje('Error al registrar el usuario. Es posible que el nombre de usuario o el email ya exista.');
       setError(true);
@@ -35,7 +49,7 @@ const Register = () => {
 
   return (
     <div>
-      <h2>Register</h2>
+      <h2>Registro</h2>
       {mensaje && (
         <div style={{ color: error ? 'red' : 'green' }}>
           {mensaje}

@@ -20,7 +20,7 @@ const UploadCSV = () => {
         formData.append("file", file);
 
         try {
-            const response = await axios.post(`${API_URL}/cargar`, formData, {
+            const response = await axios.post(`${API_URL}api/sismos/cargar`, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             setMessage("Archivo subido con éxito.");
