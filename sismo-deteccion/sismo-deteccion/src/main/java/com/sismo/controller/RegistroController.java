@@ -19,29 +19,25 @@ public class RegistroController {
     }
 
     @PostMapping
-    public RegistroResponse registrarUsuario(
-            @RequestParam("usuario") String usuario, 
-            @RequestParam("email") String email,
-            @RequestParam("password") String password,
-            @RequestParam("confirmPassword") String confirmPassword) {
+    public RegistroResponse registrarUsuario(@RequestBody RegistroRequest request) {
         
         System.out.println("Procesando formulario de registro (POST)");
-        System.out.println("Datos recibidos - Usuario: " + usuario + ", Email: " + email);
+        System.out.println("Datos recibidos - Usuario: " + request.getNombre() + ", Email: " + request.getEmail());
         
         RegistroResponse response = new RegistroResponse();
         
-        // Validar que las contraseñas coincidan
-        if (!password.equals(confirmPassword)) {
+        // Validar que las contraseñas coinciden
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
             response.setMensaje("Las contraseñas no coinciden");
             response.setError(true);
-            response.setUsuarioForm(usuario);
-            response.setEmailForm(email);
+            response.setUsuarioForm(request.getNombre());
+            response.setEmailForm(request.getEmail());
             return response;
         }
         
         try {
-            // Lógica de registro de usuario
-            boolean registrado = usuarioService.registrarUsuario(usuario, email, password);
+            // Importante: aquí pasamos request.getNombre() como "usuario" para el servicio
+            boolean registrado = usuarioService.registrarUsuario(request.getNombre(), request.getEmail(), request.getPassword());
             
             System.out.println("Resultado del registro: " + (registrado ? "ÉXITO" : "FALLIDO"));
             
@@ -51,8 +47,8 @@ public class RegistroController {
             } else {
                 response.setMensaje("Error al registrar el usuario. Es posible que el nombre de usuario ya exista.");
                 response.setError(true);
-                response.setUsuarioForm(usuario);
-                response.setEmailForm(email);
+                response.setUsuarioForm(request.getNombre());
+                response.setEmailForm(request.getEmail());
             }
         } catch (Exception e) {
             System.err.println("Excepción en el controlador de registro: " + e.getMessage());
@@ -60,51 +56,72 @@ public class RegistroController {
             
             response.setMensaje("Error técnico al procesar el registro: " + e.getMessage());
             response.setError(true);
-            response.setUsuarioForm(usuario);
-            response.setEmailForm(email);
+            response.setUsuarioForm(request.getNombre());
+            response.setEmailForm(request.getEmail());
         }
         
         return response;
     }
-}
-
-class RegistroResponse {
-    private String mensaje;
-    private boolean error;
-    private String usuarioForm;
-    private String emailForm;
-
-    // Getters y setters
-
-    public String getMensaje() {
-        return mensaje;
+    
+    // Clase para recibir los datos JSON
+    static class RegistroRequest {
+        private String nombre;  // Mantenemos "nombre" aquí para que coincida con el frontend
+        private String email;
+        private String password;
+        private String confirmPassword;
+        
+        // Getters y setters
+        public String getNombre() { return nombre; }
+        public void setNombre(String nombre) { this.nombre = nombre; }
+        
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+        
+        public String getConfirmPassword() { return confirmPassword; }
+        public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
     }
+    
+    // Clase de respuesta
+    static class RegistroResponse {
+        private String mensaje;
+        private boolean error;
+        private String usuarioForm;
+        private String emailForm;
 
-    public void setMensaje(String mensaje) {
-        this.mensaje = mensaje;
-    }
+        // Getters y setters
+        public String getMensaje() {
+            return mensaje;
+        }
 
-    public boolean isError() {
-        return error;
-    }
+        public void setMensaje(String mensaje) {
+            this.mensaje = mensaje;
+        }
 
-    public void setError(boolean error) {
-        this.error = error;
-    }
+        public boolean isError() {
+            return error;
+        }
 
-    public String getUsuarioForm() {
-        return usuarioForm;
-    }
+        public void setError(boolean error) {
+            this.error = error;
+        }
 
-    public void setUsuarioForm(String usuarioForm) {
-        this.usuarioForm = usuarioForm;
-    }
+        public String getUsuarioForm() {
+            return usuarioForm;
+        }
 
-    public String getEmailForm() {
-        return emailForm;
-    }
+        public void setUsuarioForm(String usuarioForm) {
+            this.usuarioForm = usuarioForm;
+        }
 
-    public void setEmailForm(String emailForm) {
-        this.emailForm = emailForm;
+        public String getEmailForm() {
+            return emailForm;
+        }
+
+        public void setEmailForm(String emailForm) {
+            this.emailForm = emailForm;
+        }
     }
 }

@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-<<<<<<< HEAD
     "@react-google-maps/api": "^2.20.6",
     "axios": "^1.8.4",
     "cra-template-pwa": "2.0.0",
@@ -13,18 +12,6 @@
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.5.0",
     "react-scripts": "5.0.1",
-=======
-    "@testing-library/react": "^16.2.0",
-    "axios": "^1.8.4",
-    "cra-template-pwa": "2.0.0",
-    "leaflet": "^1.9.4",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-leaflet": "^4.2.1",
-    "react-router-dom": "^7.4.0",
-    "react-scripts": "5.0.1",
-    "react-table": "^7.8.0",
->>>>>>> 5661a81e0d3db14a87a285fc409d6a776e5de8a8
     "vis-data": "^7.1.9",
     "vis-network": "^9.1.9",
     "web-vitals": "^4.2.4"
