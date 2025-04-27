@@ -18,7 +18,7 @@ const SismosMap = () => {
     const [loading, setLoading] = useState(true);
     
     useEffect(() => {
-        axios.get(`${API_URL}api/sismos/magnitud/5`) // Filtrar sismos con magnitud > 5
+        axios.get(`${API_URL}/api/sismos/magnitud/5`) // Filtrar sismos con magnitud > 5
             .then(response => {
                 setSismos(response.data);
                 setLoading(false);

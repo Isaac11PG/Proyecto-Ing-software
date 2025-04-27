@@ -9,7 +9,6 @@ const SismosTable = () => {
     const [error, setError] = useState(null);
     const [magnitudFiltro, setMagnitudFiltro] = useState(5); // Valor por defecto: 5
 
-    // Estilos en línea (mantenidos como en tu código original)
     const styles = {
         table: {
             width: '100%',
@@ -67,7 +66,7 @@ const SismosTable = () => {
     const cargarSismos = () => {
         setLoading(true);
         // Usar el endpoint de filtro por magnitud
-        const endpointURL = `${API_URL}api/sismos/magnitud/${magnitudFiltro}`;
+        const endpointURL = `${API_URL}/api/sismos/magnitud/${magnitudFiltro}`;
         console.log("Obteniendo datos de:", endpointURL);
         
         axios.get(endpointURL)

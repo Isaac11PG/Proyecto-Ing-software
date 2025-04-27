@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SismoNodeRepository extends Neo4jRepository<SismoNode, Long> {
+public interface SismoNodeRepository extends Neo4jRepository<SismoNode, String> {
     
     List<SismoNode> findByMagnitudGreaterThan(Double magnitud);
     
@@ -17,7 +17,7 @@ public interface SismoNodeRepository extends Neo4jRepository<SismoNode, Long> {
     List<SismoNode> buscarPorMagnitudMayorQue(@Param("magnitud") Double magnitud);
     
     @Query("MATCH (s:Sismo) " +
-           "WHERE distance(point({latitude: s.latitud, longitude: s.longitud}), " +
+           "WHERE point.distance(point({latitude: s.latitud, longitude: s.longitud}), " +
            "point({latitude: $lat, longitude: $lon})) <= $distanciaKm * 1000 " +
            "RETURN s")
     List<SismoNode> buscarSismosCercanos(@Param("lat") Double latitud, 

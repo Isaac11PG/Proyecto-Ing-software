@@ -7,6 +7,7 @@ import com.sismo.service.GrafoService;
 import com.sismo.service.SismoService;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -16,7 +17,8 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/grafos")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@PreAuthorize("permitAll()")
 public class GrafoController {
     
     private final GrafoService grafoService;
@@ -41,7 +43,7 @@ public class GrafoController {
     public ResponseEntity<Map<String, Object>> cargarDatosExistentesANeo4j() {
         try {
             // Obtener todos los sismos desde el repositorio relacional
-            List<Sismo> sismos = sismoService.obtenerTodos();
+            List<Sismo> sismos = sismoService.obtenerPorMagnitud(7);
             
             if (!sismos.isEmpty()) {
                 // Cargar los sismos a Neo4j
@@ -54,6 +56,7 @@ public class GrafoController {
             response.put("success", true);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            e.printStackTrace();
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje", "Error al cargar datos a Neo4j: " + e.getMessage());
             response.put("success", false);
@@ -73,7 +76,7 @@ public class GrafoController {
         // Preparar nodos para la visualización (formato para bibliotecas como vis.js)
         List<Map<String, Object>> nodos = sismos.stream().map(s -> {
             Map<String, Object> nodo = new HashMap<>();
-            nodo.put("id", "sismo_" + s.getId());
+            nodo.put("id", "sismo_" + s.getCodigo());
             nodo.put("label", "Sismo " + s.getMagnitud());
             nodo.put("group", "sismo");
             nodo.put("title", String.format("Fecha: %s, Magnitud: %s", s.getFecha(), s.getMagnitud()));
@@ -82,7 +85,7 @@ public class GrafoController {
         
         nodos.addAll(ubicaciones.stream().map(u -> {
             Map<String, Object> nodo = new HashMap<>();
-            nodo.put("id", "ubicacion_" + u.getId());
+            nodo.put("id", "ubicacion_" + u.getCodigo());
             nodo.put("label", u.getNombre());
             nodo.put("group", "ubicacion");
             return nodo;
@@ -92,16 +95,16 @@ public class GrafoController {
         List<Map<String, Object>> aristas = sismos.stream().flatMap(s -> {
             List<Map<String, Object>> edges = s.getSismosCercanos().stream().map(cercano -> {
                 Map<String, Object> edge = new HashMap<>();
-                edge.put("from", "sismo_" + s.getId());
-                edge.put("to", "sismo_" + cercano.getId());
+                edge.put("from", "sismo_" + s.getCodigo());
+                edge.put("to", "sismo_" + cercano.getCodigo());
                 edge.put("label", "CERCANO_A");
                 return edge;
             }).collect(Collectors.toList());
             
             List<Map<String, Object>> edgesSimilares = s.getSismosSimilares().stream().map(similar -> {
                 Map<String, Object> edge = new HashMap<>();
-                edge.put("from", "sismo_" + s.getId());
-                edge.put("to", "sismo_" + similar.getId());
+                edge.put("from", "sismo_" + s.getCodigo());
+                edge.put("to", "sismo_" + similar.getCodigo());
                 edge.put("label", "SIMILAR_MAGNITUD");
                 return edge;
             }).collect(Collectors.toList());
@@ -110,8 +113,8 @@ public class GrafoController {
             
             if (s.getUbicacion() != null) {
                 Map<String, Object> edgeUbicacion = new HashMap<>();
-                edgeUbicacion.put("from", "sismo_" + s.getId());
-                edgeUbicacion.put("to", "ubicacion_" + s.getUbicacion().getId());
+                edgeUbicacion.put("from", "sismo_" + s.getCodigo());
+                edgeUbicacion.put("to", "ubicacion_" + s.getUbicacion().getCodigo());
                 edgeUbicacion.put("label", "OCURRIDO_EN");
                 edges.add(edgeUbicacion);
             }
