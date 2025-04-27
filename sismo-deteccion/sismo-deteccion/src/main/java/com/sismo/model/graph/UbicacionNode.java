@@ -14,8 +14,8 @@ import java.util.Set;
 @Data
 @Node("Ubicacion")
 public class UbicacionNode {
-    @Id @GeneratedValue
-    private Long id;
+    @Id
+    private String codigo; // Identificador único de negocio, asignado por app
     
     @Property("nombre")
     private String nombre;

@@ -9,12 +9,12 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UbicacionNodeRepository extends Neo4jRepository<UbicacionNode, Long> {
+public interface UbicacionNodeRepository extends Neo4jRepository<UbicacionNode, String> {
     
     Optional<UbicacionNode> findByNombre(String nombre);
     
     @Query("MATCH (u:Ubicacion) " +
-           "WHERE distance(point({latitude: u.latitud, longitude: u.longitud}), " +
+           "WHERE point.distance(point({latitude: u.latitud, longitude: u.longitud}), " +
            "point({latitude: $lat, longitude: $lon})) <= 5000 " + // 5km de tolerancia
            "RETURN u LIMIT 1")
     Optional<UbicacionNode> buscarUbicacionCercana(@Param("lat") Double latitud, 

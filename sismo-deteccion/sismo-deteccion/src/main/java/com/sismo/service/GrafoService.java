@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +29,8 @@ public class GrafoService {
     public SismoNode crearNodoSismo(Sismo sismo) {
         // Crear nodo para el sismo
         SismoNode sismoNode = new SismoNode();
+        sismoNode.setCodigo(UUID.randomUUID().toString());
+
         sismoNode.setFecha(sismo.getFecha());
         sismoNode.setHora(sismo.getHora());
         sismoNode.setMagnitud(sismo.getMagnitud());
@@ -69,20 +72,33 @@ public class GrafoService {
     
     @Transactional
     public void cargarSismosAGrafo(List<Sismo> sismos) {
-        for (Sismo sismo : sismos) {
-            crearNodoSismo(sismo);
+        try {
+            // Log para depurar
+            System.out.println("Iniciando carga de sismos a Neo4j. Total: " + sismos.size());
+            
+            for (Sismo sismo : sismos) {
+                // Log por cada sismo
+                System.out.println("Cargando sismo ID: " + sismo.getId());
+                crearNodoSismo(sismo);
+            }
+            
+            System.out.println("Carga completada exitosamente.");
+        } catch (Exception e) {
+            // Log para errores
+            System.err.println("Error al cargar sismos a Neo4j: " + e.getMessage());
+            throw e; // Re-lanzar la excepción para que sea manejada en el controlador
         }
     }
     
     @Transactional
     public void establecerRelacionesSismosCercanos(SismoNode sismoNode) {
-        // Buscar sismos en un radio de 50km
+        // Buscar sismos en un radio de 25km
         List<SismoNode> sismosCercanos = sismoNodeRepository
             .buscarSismosCercanos(sismoNode.getLatitud(), sismoNode.getLongitud(), 25);
         
         // Filtrar para no incluir el mismo sismo
         sismosCercanos = sismosCercanos.stream()
-            .filter(s -> !s.getId().equals(sismoNode.getId()))
+            .filter(s -> !s.getCodigo().equals(sismoNode.getCodigo()))
             .collect(Collectors.toList());
         
         // Establecer relaciones (limitando a máximo 5 sismos cercanos)
@@ -105,12 +121,11 @@ public class GrafoService {
         double magnitudMax = sismoNode.getMagnitud() + 0.5;
         
         // Buscar sismos con magnitud similar usando una consulta personalizada
-        // Esta es una simplificación, considera usar una consulta Cypher más específica
         List<SismoNode> sismosSimilares = sismoNodeRepository.findAll().stream()
             .filter(s -> s.getMagnitud() != null && 
                    s.getMagnitud() >= magnitudMin && 
                    s.getMagnitud() <= magnitudMax &&
-                   !s.getId().equals(sismoNode.getId()))
+                   !s.getCodigo().equals(sismoNode.getCodigo()))
             .limit(5)
             .collect(Collectors.toList());
         

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.sismo.model.Role;
 import com.sismo.model.UserModel;
 import com.sismo.repository.UserRepository;
 import com.sismo.repository.RoleRepository;  // Inyectamos el repositorio de roles
@@ -89,7 +90,7 @@ public class UsuarioService {
             
             // Asignar el rol según el valor pasado
             roleRepository.findByName(rol).ifPresent(usuario::addRole);
-
+            
             // Guardar el usuario actualizado en la base de datos
             userRepository.save(usuario);
             return true;

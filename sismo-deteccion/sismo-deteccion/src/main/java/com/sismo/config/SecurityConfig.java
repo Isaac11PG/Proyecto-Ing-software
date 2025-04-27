@@ -1,6 +1,8 @@
 package com.sismo.config;
 
 import java.util.Arrays;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -8,23 +10,39 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.sismo.interceptor.SessionDebugFilter;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final SessionDebugFilter sessionDebugFilter;
+
+    @Autowired
+    public SecurityConfig(SessionDebugFilter sessionDebugFilter) {
+        this.sessionDebugFilter = sessionDebugFilter;
+    }
+    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf().disable()
-            .cors().configurationSource(corsConfigurationSource()).and() // Usa el bean de configuración CORS
+            .cors().configurationSource(corsConfigurationSource()).and()
             .authorizeHttpRequests(auth -> auth
+                // Permitir OPTIONS para todos los endpoints (crucial para CORS preflight)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                
                 // Rutas estáticas y públicas
                 .requestMatchers("/registro", "/login", "/testConnection", "/css/**", "/js/**").permitAll()
                 
@@ -32,46 +50,86 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/registro").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/registro").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/home").permitAll() // Asegúrate de que tu endpoint /api/home sea accesible
+                .requestMatchers("/api/home").permitAll() 
+                .requestMatchers("/api/sismos/**").permitAll()
+                .requestMatchers("/api/grafos/**").permitAll()
+                .requestMatchers("/api/usuarios/**").permitAll()
                 
                 // Rutas protegidas
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/user/**").hasRole("USER")
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/procesar_login")
-                .defaultSuccessUrl("/home", true)
-                .failureUrl("/login?error=true")
-                .permitAll()
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                .invalidSessionUrl("/api/auth/session-invalid")
+                .maximumSessions(1)
+                .expiredUrl("/api/auth/session-expired")
+            )
+            .exceptionHandling(handling -> handling
+                .authenticationEntryPoint((request, response, exception) -> {
+                    System.out.println("Error de autenticación: " + exception.getMessage());
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\":\"No autenticado\",\"message\":\"" + exception.getMessage() + "\"}");
+                })
             )
             .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"message\":\"Cierre de sesión exitoso\"}");
+                })
                 .permitAll()
-            );
+            )
+            .addFilterBefore(sessionDebugFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // Agregar un bean específico para la configuración CORS
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        
+        // Configura los orígenes permitidos
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        
+        // Permite todas las cabeceras comunes
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization", 
+                "Content-Type", 
+                "Accept", 
+                "Origin", 
+                "X-Requested-With",
+                "Access-Control-Request-Method", 
+                "Access-Control-Request-Headers"
+        ));
+        
+        // Expone cabeceras necesarias
+        configuration.setExposedHeaders(Arrays.asList(
+                "Authorization", 
+                "Content-Type", 
+                "Access-Control-Allow-Origin",
+                "Access-Control-Allow-Credentials"
+        ));
+        
+        // Métodos permitidos, incluido OPTIONS para preflight
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        
+        // Habilita credenciales (cookies, auth headers)
         configuration.setAllowCredentials(true);
+        
+        // Tiempo de cache para respuestas preflight
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", configuration); // Aplicar a todos los endpoints
         return source;
     }
 
-    // Resto de tus beans...
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -80,5 +138,5 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
+    }   
 }
