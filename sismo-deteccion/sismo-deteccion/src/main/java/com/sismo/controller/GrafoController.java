@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -70,8 +71,18 @@ public class GrafoController {
         @RequestParam(defaultValue = "10") double maxMagnitud,
         @RequestParam(defaultValue = "100") int limit) {
         
-        List<SismoNode> sismos = grafoService.obtenerTodosLosNodosSismo();
-        List<UbicacionNode> ubicaciones = grafoService.obtenerTodasLasUbicaciones();
+        List<SismoNode> sismos = grafoService.obtenerSismosFiltrados(minMagnitud, maxMagnitud, limit);
+
+        
+
+        // Solo obtener ubicaciones relacionadas con los sismos filtrados
+        Set<String> ubicacionIds = sismos.stream()
+            .filter(s -> s.getUbicacion() != null)
+            .map(s -> s.getUbicacion().getCodigo())
+            .collect(Collectors.toSet());
+            
+        List<UbicacionNode> ubicaciones = grafoService.obtenerUbicacionesPorIds(ubicacionIds);
+        
         
         // Preparar nodos para la visualización (formato para bibliotecas como vis.js)
         List<Map<String, Object>> nodos = sismos.stream().map(s -> {

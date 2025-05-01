@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import API_URL from '../config';
 
-// Iconos SVG básicos, consistentes con Login.jsx
+// Si tienes problemas con las importaciones de Lucide, puedes usar estos SVGs básicos
 const IconUser = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -58,29 +58,18 @@ const IconAlert = () => (
   </svg>
 );
 
-const IconMail = () => (
+const IconLogIn = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-    <polyline points="22,6 12,13 2,6"></polyline>
+    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+    <polyline points="10 17 15 12 10 7"></polyline>
+    <line x1="15" y1="12" x2="3" y2="12"></line>
   </svg>
 );
 
-const IconUserPlus = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="8.5" cy="7" r="4"></circle>
-    <line x1="20" y1="8" x2="20" y2="14"></line>
-    <line x1="23" y1="11" x2="17" y2="11"></line>
-  </svg>
-);
-
-const Register = () => {
-  const [nombre, setNombre] = useState('');
-  const [email, setEmail] = useState('');
+const Login = () => {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -95,6 +84,7 @@ const Register = () => {
   // Guardar preferencia de tema
   useEffect(() => {
     localStorage.setItem('darkMode', darkMode.toString());
+    // Cambiamos también en el elemento HTML para aplicar globalmente
     if (darkMode) {
       document.documentElement.classList.add('dark-mode');
     } else {
@@ -109,51 +99,93 @@ const Register = () => {
     setLoading(true);
     setMensaje('');
     
-    if (password !== confirmPassword) {
-      setMensaje('Las contraseñas no coinciden');
-      setError(true);
-      setLoading(false);
-      return;
-    }
-
+    const loginUrl = `${API_URL}/api/auth/login`;
+    console.log('Intentando login en:', loginUrl);
+    
     try {
       const userData = {
-        nombre,
-        email,
-        password,
-        confirmPassword
+        username: username,
+        password: password
       };
       
-      const response = await axios.post(`${API_URL}/api/registro`, userData, {
+      const response = await axios.post(loginUrl, userData, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-        }
+        },
+        withCredentials: true
       });
       
+      console.log('Respuesta recibida:', response);
+      
       if (response.data && !response.data.error) {
-        setMensaje(response.data.mensaje || 'Registro exitoso. Redirigiendo al login...');
+        setMensaje(response.data.message || 'Login exitoso');
         setError(false);
         
-        // Redirigir al login después de un breve retraso
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        // Guardar info de usuario
+        localStorage.setItem('username', response.data.username);
+        
+        // Si la respuesta ya incluye el rol, guardarlo directamente
+        if (response.data.roles && response.data.roles.length > 0) {
+          localStorage.setItem('userRole', response.data.roles[0]);
+          
+          // Redirigir basado en rol
+          setTimeout(() => {
+            const role = response.data.roles[0];
+            if (role === 'ROLE_ADMIN') {
+              navigate('/admin/dashboard');
+            } else {
+              navigate('/user/dashboard/tabla');
+            }
+          }, 1000);
+        } else {
+          // Verificar roles después del login
+          try {
+            const authCheckResponse = await axios.get(`${API_URL}/api/auth/check`, {
+              withCredentials: true,
+              headers: { 'Accept': 'application/json' }
+            });
+            
+            if (authCheckResponse.data.authenticated) {
+              if (authCheckResponse.data.roles && authCheckResponse.data.roles.length > 0) {
+                localStorage.setItem('userRole', authCheckResponse.data.roles[0]);
+                
+                // Redirigir basado en rol
+                const role = authCheckResponse.data.roles[0];
+                if (role === 'ROLE_ADMIN') {
+                  setTimeout(() => navigate('/admin/dashboard'), 1000);
+                } else {
+                  setTimeout(() => navigate('/user/dashboard/tabla'), 1000);
+                }
+              } else {
+                localStorage.setItem('userRole', 'ROLE_USER');
+                setTimeout(() => navigate('/user/dashboard/tabla'), 1000);
+              }
+            } else {
+              fallbackGetRole();
+            }
+          } catch (error) {
+            console.error('Error al verificar autenticación:', error);
+            fallbackGetRole();
+          }
+        }
       } else {
-        setMensaje(response.data.mensaje || 'Error en el registro');
+        setMensaje(response.data.message || 'Credenciales inválidas');
         setError(true);
       }
     } catch (error) {
-      console.error('Error en el registro:', error);
+      console.error('Error en la petición de login:', error);
       
       if (error.response) {
-        if (error.response.status === 409) {
-          setMensaje('El nombre de usuario o email ya está en uso');
+        if (error.response.status === 404) {
+          setMensaje('Error: La URL de login no existe. Verifique la configuración del servidor.');
+        } else if (error.response.status === 401 || error.response.status === 403) {
+          setMensaje('Usuario o contraseña incorrectos');
         } else {
-          setMensaje(error.response.data?.mensaje || 'Error al procesar el registro');
+          setMensaje(`Error del servidor: ${error.response.status} - ${error.response.data?.message || 'Error desconocido'}`);
         }
       } else if (error.request) {
-        setMensaje('No se pudo conectar con el servidor. Verifique su conexión.');
+        setMensaje('No se pudo conectar con el servidor. Verifique su conexión y que el servidor esté activo.');
       } else {
         setMensaje(`Error: ${error.message}`);
       }
@@ -164,7 +196,29 @@ const Register = () => {
     }
   };
 
-  // Estilos CSS integrados consistentes con Login.jsx
+  // Función de respaldo para obtener el rol
+  const fallbackGetRole = async () => {
+    try {
+      const roleResponse = await axios.get(`${API_URL}/api/home`, {
+        withCredentials: true,
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (roleResponse.data.isAdmin) {
+        localStorage.setItem('userRole', 'ROLE_ADMIN');
+        setTimeout(() => navigate('/admin/dashboard'), 1000);
+      } else {
+        localStorage.setItem('userRole', 'ROLE_USER');
+        setTimeout(() => navigate('/user/dashboard/tabla'), 1000);
+      }
+    } catch (error) {
+      console.error('Error al obtener el rol (respaldo):', error);
+      localStorage.setItem('userRole', 'ROLE_USER');
+      setTimeout(() => navigate('/user/dashboard/tabla'), 1000);
+    }
+  };
+
+  // Estilos CSS integrados para evitar dependencia de Tailwind
   const styles = {
     container: {
       minHeight: '100vh',
@@ -343,6 +397,11 @@ const Register = () => {
       fontSize: '0.75rem',
       color: darkMode ? '#6b7280' : '#9ca3af',
     },
+    '@keyframes spin': {
+      '0%': { transform: 'rotate(0deg)' },
+      '100%': { transform: 'rotate(360deg)' },
+    },
+    // Estilos para las ondas sísmicas
     wavesContainer: {
       position: 'absolute',
       inset: 0,
@@ -400,10 +459,6 @@ const Register = () => {
       input::placeholder {
         color: ${darkMode ? '#9ca3af' : '#a0aec0'};
       }
-      
-      .wave-animation {
-        animation: ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
-      }
     `;
     document.head.appendChild(style);
     
@@ -447,7 +502,7 @@ const Register = () => {
             <IconActivity />
           </div>
           <h1 style={styles.title}>SismoMonitor</h1>
-          <h2 style={styles.subtitle}>Crear Cuenta</h2>
+          <h2 style={styles.subtitle}>Iniciar Sesión</h2>
           <div style={styles.divider}></div>
         </div>
         
@@ -459,11 +514,11 @@ const Register = () => {
           </div>
         )}
         
-        {/* Formulario de registro */}
+        {/* Formulario */}
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.formGroup}>
-            <label htmlFor="nombre" style={styles.label}>
-              Nombre de Usuario
+            <label htmlFor="username" style={styles.label}>
+              Usuario
             </label>
             <div style={styles.inputWrapper}>
               <span style={styles.inputIcon}>
@@ -471,33 +526,12 @@ const Register = () => {
               </span>
               <input
                 type="text"
-                id="nombre"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={loading}
                 placeholder="Ingrese su nombre de usuario"
-                style={styles.input}
-              />
-            </div>
-          </div>
-
-          <div style={styles.formGroup}>
-            <label htmlFor="email" style={styles.label}>
-              Correo Electrónico
-            </label>
-            <div style={styles.inputWrapper}>
-              <span style={styles.inputIcon}>
-                <IconMail />
-              </span>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-                placeholder="Ingrese su correo electrónico"
                 style={styles.input}
               />
             </div>
@@ -523,27 +557,6 @@ const Register = () => {
               />
             </div>
           </div>
-
-          <div style={styles.formGroup}>
-            <label htmlFor="confirmPassword" style={styles.label}>
-              Confirmar Contraseña
-            </label>
-            <div style={styles.inputWrapper}>
-              <span style={styles.inputIcon}>
-                <IconLock />
-              </span>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={loading}
-                placeholder="Confirme su contraseña"
-                style={styles.input}
-              />
-            </div>
-          </div>
           
           <button
             type="submit"
@@ -555,20 +568,20 @@ const Register = () => {
                 <svg style={styles.spinner} width="20" height="20" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" strokeDasharray="32" strokeDashoffset="8" />
                 </svg>
-                Procesando...
+                Iniciando sesión...
               </>
             ) : (
               <>
-                <span style={styles.buttonIcon}><IconUserPlus /></span>
-                Crear Cuenta
+                <span style={styles.buttonIcon}><IconLogIn /></span>
+                Iniciar Sesión
               </>
             )}
           </button>
         </form>
         
-        {/* Enlace para ir al login */}
+        {/* Enlace de registro */}
         <div style={styles.footer}>
-          ¿Ya tienes una cuenta? <a href="/login" style={styles.link}>Inicia sesión aquí</a>
+          ¿No tienes una cuenta? <a href="/register" style={styles.link}>Regístrate aquí</a>
         </div>
         
         {/* Pie de página con información del sistema */}
@@ -581,4 +594,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;
