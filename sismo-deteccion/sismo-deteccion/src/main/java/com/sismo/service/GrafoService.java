@@ -8,6 +8,7 @@ import com.sismo.repository.graph.UbicacionNodeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,8 +50,14 @@ public class GrafoService {
         UbicacionNode ubicacion;
         if (ubicacionExistente.isPresent()) {
             ubicacion = ubicacionExistente.get();
+            // Verificar que la ubicación existente tenga un ID
+            if (ubicacion.getCodigo() == null || ubicacion.getCodigo().isEmpty()) {
+                ubicacion.setCodigo(UUID.randomUUID().toString());
+                ubicacion = ubicacionNodeRepository.save(ubicacion);
+            }
         } else {
             ubicacion = new UbicacionNode();
+            ubicacion.setCodigo(UUID.randomUUID().toString());
             ubicacion.setNombre(sismo.getReferenciaLocalizacion());
             ubicacion.setLatitud(sismo.getLatitud());
             ubicacion.setLongitud(sismo.getLongitud());
@@ -92,14 +99,20 @@ public class GrafoService {
     
     @Transactional
     public void establecerRelacionesSismosCercanos(SismoNode sismoNode) {
+        
+        if (sismoNode.getCodigo() == null) {
+            sismoNode.setCodigo(UUID.randomUUID().toString());
+            sismoNodeRepository.save(sismoNode);
+        }
+        
         // Buscar sismos en un radio de 25km
         List<SismoNode> sismosCercanos = sismoNodeRepository
             .buscarSismosCercanos(sismoNode.getLatitud(), sismoNode.getLongitud(), 25);
         
         // Filtrar para no incluir el mismo sismo
         sismosCercanos = sismosCercanos.stream()
-            .filter(s -> !s.getCodigo().equals(sismoNode.getCodigo()))
-            .collect(Collectors.toList());
+        .filter(s -> s.getCodigo() != null && !s.getCodigo().equals(sismoNode.getCodigo()))
+        .collect(Collectors.toList());
         
         // Establecer relaciones (limitando a máximo 5 sismos cercanos)
         int count = 0;
@@ -143,5 +156,19 @@ public class GrafoService {
     
     public List<UbicacionNode> obtenerTodasLasUbicaciones() {
         return ubicacionNodeRepository.findAll();
+    }
+
+    public List<SismoNode> obtenerSismosFiltrados(double minMagnitud, double maxMagnitud, int limit) {
+        // Usar consulta personalizada para obtener solo lo necesario
+        return sismoNodeRepository.findAll().stream()
+            .filter(s -> s.getMagnitud() != null && 
+                         s.getMagnitud() >= minMagnitud && 
+                         s.getMagnitud() <= maxMagnitud)
+            .limit(limit)
+            .collect(Collectors.toList());
+    }
+    
+    public List<UbicacionNode> obtenerUbicacionesPorIds(Collection<String> ids) {
+        return ubicacionNodeRepository.findAllById(ids);
     }
 }

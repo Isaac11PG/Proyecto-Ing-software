@@ -12,6 +12,12 @@ import java.util.List;
 public interface SismoNodeRepository extends Neo4jRepository<SismoNode, String> {
     
     List<SismoNode> findByMagnitudGreaterThan(Double magnitud);
+
+    @Query("MATCH (s:Sismo) WHERE s.magnitud >= $minMagnitud AND s.magnitud <= $maxMagnitud " +
+              "RETURN s LIMIT $limit")
+       List<SismoNode> findSismosByMagnitudRange(@Param("minMagnitud") Double minMagnitud, 
+                                          @Param("maxMagnitud") Double maxMagnitud,
+                                          @Param("limit") Integer limit);
     
     @Query("MATCH (s:Sismo) WHERE s.magnitud > $magnitud RETURN s")
     List<SismoNode> buscarPorMagnitudMayorQue(@Param("magnitud") Double magnitud);
@@ -23,4 +29,11 @@ public interface SismoNodeRepository extends Neo4jRepository<SismoNode, String> 
     List<SismoNode> buscarSismosCercanos(@Param("lat") Double latitud, 
                                          @Param("lon") Double longitud, 
                                          @Param("distanciaKm") Integer distanciaKm);
+
+                                         @Query("MATCH (s:Sismo) WHERE s.magnitud >= $minMagnitud AND s.magnitud <= $maxMagnitud " +
+                                         "RETURN s ORDER BY s.fecha DESC LIMIT $limit")
+                                  List<SismoNode> findByMagnitudBetweenOrderByFechaDescLimit(
+                                      @Param("minMagnitud") Double minMagnitud, 
+                                      @Param("maxMagnitud") Double maxMagnitud, 
+                                      @Param("limit") Integer limit);
 }
