@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `sismos` (
   KEY `idx_sismos_magnitud` (`magnitud`),
   KEY `idx_sismos_fecha` (`fecha`),
   KEY `idx_sismos_ubicacion` (`latitud`,`longitud`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -92,6 +92,10 @@ CREATE TABLE IF NOT EXISTS `usuario_roles` (
   KEY `FKbt9i9yrb9ug88xnh82n9m60pr` (`rol_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 COMMIT;
+
+-- Insertar roles por defecto si no existen
+INSERT IGNORE INTO roles (nombre) VALUES ('ROLE_USER');
+INSERT IGNORE INTO roles (nombre) VALUES ('ROLE_ADMIN');
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

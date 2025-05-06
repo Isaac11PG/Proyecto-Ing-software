@@ -36,58 +36,58 @@ public class LoginController {
     private UsuarioService usuarioService;
 
     @PostMapping("/login")
-public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest,
-                                         HttpServletRequest request,
-                                         HttpServletResponse response) {
-    try {
-        // Extraer las credenciales
-        String username = loginRequest.getUsername();
-        String password = loginRequest.getPassword();
-        
-        System.out.println("Intento de login para usuario: " + username);
-        
-        // Crear token de autenticación
-        UsernamePasswordAuthenticationToken authToken = 
-            new UsernamePasswordAuthenticationToken(username, password);
-        
-        // Autenticar
-        Authentication authentication = authenticationManager.authenticate(authToken);
-        
-        System.out.println("Autenticación exitosa para: " + authentication.getName());
-        System.out.println("Roles: " + authentication.getAuthorities());
-        
-        // Establecer la autenticación en el contexto de seguridad
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        
-        // Obtener o crear la sesión HTTP y guardar el SecurityContext
-        HttpSession session = request.getSession(true);
-        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
-        
-        // Establecer una cookie de sesión explícita (como backup)
-        Cookie sessionCookie = new Cookie("JSESSIONID", session.getId());
-        sessionCookie.setPath("/");
-        sessionCookie.setHttpOnly(true);
-        sessionCookie.setMaxAge(-1); // -1 significa que expira cuando se cierra el navegador
-        response.addCookie(sessionCookie);
-        
-        System.out.println("ID de sesión creada: " + session.getId());
-        
-        // Extraer roles del usuario autenticado
-        List<String> roles = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.toList());
-        
-        // Crear un mapa para la respuesta
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("message", "Login exitoso");
-        responseMap.put("username", username);
-        responseMap.put("error", false);
-        responseMap.put("roles", roles);
-        responseMap.put("sessionId", session.getId()); // Incluir ID de sesión
-        
-        return ResponseEntity.ok(responseMap);
-        
-    } catch (AuthenticationException e) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest,
+                                             HttpServletRequest request,
+                                             HttpServletResponse response) {
+        try {
+            // Extraer las credenciales
+            String username = loginRequest.getUsername();
+            String password = loginRequest.getPassword();
+            
+            System.out.println("Intento de login para usuario: " + username);
+            
+            // Crear token de autenticación
+            UsernamePasswordAuthenticationToken authToken = 
+                new UsernamePasswordAuthenticationToken(username, password);
+            
+            // Autenticar
+            Authentication authentication = authenticationManager.authenticate(authToken);
+            
+            System.out.println("Autenticación exitosa para: " + authentication.getName());
+            System.out.println("Roles: " + authentication.getAuthorities());
+            
+            // Establecer la autenticación en el contexto de seguridad
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            // Obtener o crear la sesión HTTP y guardar el SecurityContext
+            HttpSession session = request.getSession(true);
+            session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+            
+            // Configurar cookie de sesión
+            Cookie sessionCookie = new Cookie("JSESSIONID", session.getId());
+            sessionCookie.setPath("/");
+            sessionCookie.setHttpOnly(true);
+            sessionCookie.setMaxAge(3600); // 1 hora
+            response.addCookie(sessionCookie);
+            
+            System.out.println("ID de sesión creada: " + session.getId());
+            
+            // Extraer roles del usuario autenticado
+            List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+            
+            // Crear un mapa para la respuesta
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("message", "Login exitoso");
+            responseMap.put("username", username);
+            responseMap.put("error", false);
+            responseMap.put("roles", roles);
+            responseMap.put("sessionId", session.getId()); // Incluir ID de sesión
+            
+            return ResponseEntity.ok(responseMap);
+            
+        } catch (AuthenticationException e) {
             // Log para depuración
             System.out.println("Error de autenticación: " + e.getMessage());
             e.printStackTrace();
@@ -96,7 +96,7 @@ public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest
             errResponse.put("message", "Credenciales inválidas: " + e.getMessage());
             errResponse.put("error", true);
             
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errResponse);
         }
     }
     
@@ -154,5 +154,21 @@ public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("authenticated", false, "message", "No autenticado"));
         }
+    }
+    
+    @GetMapping("/session-invalid")
+    public ResponseEntity<?> handleInvalidSession() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", true);
+        response.put("message", "Sesión inválida. Por favor inicie sesión nuevamente.");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+    
+    @GetMapping("/session-expired")
+    public ResponseEntity<?> handleExpiredSession() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", true);
+        response.put("message", "Su sesión ha expirado. Por favor inicie sesión nuevamente.");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 }
