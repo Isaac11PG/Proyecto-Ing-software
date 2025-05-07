@@ -61,7 +61,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .invalidSessionUrl("/api/auth/session-invalid")
                 .maximumSessions(1)
                 .expiredUrl("/api/auth/session-expired")
@@ -94,7 +94,6 @@ public class SecurityConfig {
         
         // Configura los orígenes permitidos
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         
         // Permite todas las cabeceras comunes

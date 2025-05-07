@@ -19,11 +19,20 @@ RUN gradle build --no-daemon -x test
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 
+# Instalar herramientas básicas de diagnóstico
+RUN apt-get update && apt-get install -y curl iputils-ping procps && rm -rf /var/lib/apt/lists/*
+
+# Crear y configurar directorio para archivos temporales
+RUN mkdir -p /app/tmp/uploads && chmod 777 /app/tmp/uploads
+
 # Copia el JAR construido desde la etapa anterior
 COPY --from=build /app/build/libs/*.jar app.jar
+
+# Variables de entorno para la JVM
+ENV JAVA_OPTS="-Xmx512m -Xms256m -Djava.io.tmpdir=/app/tmp/uploads"
 
 # Expone el puerto de la aplicación
 EXPOSE 8080
 
-# Comando para ejecutar la aplicación
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Comando para ejecutar la aplicación con configuración de directorio temporal
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]
