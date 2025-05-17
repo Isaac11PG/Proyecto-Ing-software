@@ -7,19 +7,23 @@ services:
     container_name: sismo-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: sismo_db
-      MYSQL_USER: sismouser
-      MYSQL_PASSWORD: sismopassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: sismos_db
+      MYSQL_USER: ${MYSQL_USER:-sismouser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-sismopassword}
     ports:
-      - "3306:3306"
+      - "3307:3306"  # Habilitamos el puerto para poder acceder desde el host
     volumes:
       - mysql_data:/var/lib/mysql
-      # Agregamos un volumen para tu esquema SQL inicializador
       - ./dbschema/:/docker-entrypoint-initdb.d/
     networks:
       - sismo-network
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "sismouser", "-p${MYSQL_PASSWORD:-sismopassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Base de datos Neo4j
   neo4j:
@@ -27,48 +31,95 @@ services:
     container_name: sismo-neo4j
     restart: always
     environment:
-      NEO4J_AUTH: neo4j/password
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-password}
       NEO4J_ACCEPT_LICENSE_AGREEMENT: 'yes'
+      # Permitir importar archivos - IMPORTANTE para cargar CSV
+      NEO4J_apoc_import_file_enabled: 'true'
+      NEO4J_dbms_security_procedures_unrestricted: 'apoc.*'
+      # Instalar plugins APOC para operaciones avanzadas
+      NEO4J_dbms_security_procedures_whitelist: 'apoc.*'
     ports:
       - "7474:7474"  # Puerto para interfaz HTTP
       - "7687:7687"  # Puerto para Bolt
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
+      - ./imports:/var/lib/neo4j/import  # Volumen para importar CSVs
+    networks:
+      - sismo-network
+    healthcheck:
+      test: ["CMD", "wget", "http://localhost:7474", "-O", "/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Script de inicialización para Neo4j
+  neo4j_init:
+    build:
+      context: ./neo4j-init
+      dockerfile: Dockerfile
+    container_name: sismo-neo4j-init
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-password}
+    volumes:
+      - ./imports:/imports
     networks:
       - sismo-network
 
   # Backend Spring Boot
   backend:
     build:
-      context: ./backend
+      context: ./sismo-deteccion
       dockerfile: Dockerfile
     container_name: sismo-backend
     restart: always
     depends_on:
-      - mysql
-      - neo4j
+      mysql:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      neo4j_init:
+        condition: service_completed_successfully
     environment:
       # Configuración de MySQL
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sismo_db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 
-      # Configuración de Neo4j
-      SPRING_DATA_NEO4J_URI: neo4j+s://e9c00bb8.databases.neo4j.io
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sismos_db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-sismouser}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-sismopassword}
+      # Configuración de Neo4j local (en lugar de la instancia remota)
+      SPRING_DATA_NEO4J_URI: bolt://neo4j:7687
       SPRING_DATA_NEO4J_USERNAME: neo4j
-      SPRING_DATA_NEO4J_PASSWORD: yCi1-OgWQWx8LF4xo7hSxqYhtB479uT4hIPutD5R4wY
+      SPRING_DATA_NEO4J_PASSWORD: ${NEO4J_PASSWORD:-password}
       # Configuración JPA
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+      # Configuración para manejo de archivos
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 50MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 50MB
+      SPRING_SERVLET_MULTIPART_LOCATION: /app/tmp/uploads
+      SERVER_TOMCAT_BASEDIR: /app/tmp
+      # Configuración para logs
+      LOGGING_LEVEL_COM_SISMO: DEBUG
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: INFO
     ports:
-      - "8080:8080"
+      - "8081:8080"
+    volumes:
+      - sismo_temp:/app/tmp
+      - ./imports:/imports  # Compartir los CSVs con la aplicación
     networks:
       - sismo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/sismos"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Frontend React
   frontend:
     build:
-      context: ./frontend
+      context: ./sismos-frontend
       dockerfile: Dockerfile
     container_name: sismo-frontend
     restart: always
@@ -83,6 +134,7 @@ volumes:
   mysql_data:
   neo4j_data:
   neo4j_logs:
+  sismo_temp:  # Volumen dedicado para archivos temporales
 
 networks:
   sismo-network:

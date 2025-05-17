@@ -26,30 +26,44 @@ public class SessionDebugFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         
-        HttpSession session = request.getSession(false); // No crear una nueva si no existe
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+        
+        // Verificar si la sesión existe antes de la ejecución del filtro
+        HttpSession sessionBefore = request.getSession(false); // No crear una nueva si no existe
+        String sessionIdBefore = sessionBefore != null ? sessionBefore.getId() : "no-session";
+        
+        // Log de solicitud entrante
+        logger.debug("REQUEST: {} {} (SessionID: {})", method, uri, sessionIdBefore);
+        
+        // Continuar con la cadena de filtros
+        filterChain.doFilter(request, response);
+        
+        // Verificar nuevamente la sesión después de la ejecución del filtro
+        HttpSession sessionAfter = request.getSession(false);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         
-        logger.debug("---- Debugging Session ----");
-        if (session != null) {
-            logger.debug("Session ID: {}", session.getId());
-            logger.debug("Session Creation Time: {}", new java.util.Date(session.getCreationTime()));
-            logger.debug("Session Last Accessed Time: {}", new java.util.Date(session.getLastAccessedTime()));
-            logger.debug("Session Max Inactive Interval: {} seconds", session.getMaxInactiveInterval());
+        logger.debug("---- Debugging Session After {} {} ----", method, uri);
+        if (sessionAfter != null) {
+            logger.debug("Session ID: {}", sessionAfter.getId());
+            logger.debug("Session Creation Time: {}", new java.util.Date(sessionAfter.getCreationTime()));
+            logger.debug("Session Last Accessed Time: {}", new java.util.Date(sessionAfter.getLastAccessedTime()));
+            logger.debug("Session Max Inactive Interval: {} seconds", sessionAfter.getMaxInactiveInterval());
             
             // Mostrar atributos de sesión relacionados con la seguridad
-            Enumeration<String> attributeNames = session.getAttributeNames();
+            Enumeration<String> attributeNames = sessionAfter.getAttributeNames();
             while (attributeNames.hasMoreElements()) {
                 String name = attributeNames.nextElement();
                 if (name.contains("SPRING_SECURITY")) {
-                    logger.debug("Session Attribute: {} = {}", name, session.getAttribute(name));
+                    logger.debug("Session Attribute: {} = {}", name, sessionAfter.getAttribute(name));
                 }
             }
         } else {
-            logger.debug("No session found.");
+            logger.debug("No session found after request processing.");
         }
         
         // Imprimir SecurityContext
-        logger.debug("SecurityContext:");
+        logger.debug("SecurityContext after request:");
         if (auth != null) {
             logger.debug(" - Principal: {}", auth.getName());
             logger.debug(" - Authenticated: {}", auth.isAuthenticated());
@@ -58,21 +72,26 @@ public class SessionDebugFilter extends OncePerRequestFilter {
             logger.debug(" - No authentication found");
         }
         
-        // Imprimir cookies
+        // Imprimir cookies en la respuesta
         Cookie[] cookies = request.getCookies();
         if (cookies != null && cookies.length > 0) {
-            logger.debug("Cookies:");
+            logger.debug("Response Cookies:");
             for (Cookie cookie : cookies) {
-                logger.debug(" - {}: {} (Path: {}, Secure: {}, HttpOnly: {})", 
+                logger.debug(" - {}: {} (Path: {}, Secure: {}, HttpOnly: {}, MaxAge: {})", 
                           cookie.getName(), cookie.getValue(), cookie.getPath(), 
-                          cookie.getSecure(), cookie.isHttpOnly());
+                          cookie.getSecure(), cookie.isHttpOnly(), cookie.getMaxAge());
             }
         } else {
-            logger.debug("No cookies found");
+            logger.debug("No cookies in response");
         }
         
         logger.debug("---------------------------");
-        
-        filterChain.doFilter(request, response);
+    }
+    
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        // Opcional: No filtrar recursos estáticos
+        return path.contains("/css/") || path.contains("/js/") || path.contains("/images/");
     }
 }

@@ -1,0 +1,19 @@
+docker exec -it 
+sismo-mysql mysql -u sismouser -p sismos_db
+
+-- 2. Insertar el usuario administrador (contraseña: Admin1234 - encriptada con BCrypt)
+INSERT INTO usuarios (nombre, email, password) 
+VALUES (
+    'admin', 
+    'admin@sismo.com', 
+    '$2a$10$VR42hnzIavoQHC3fGkP3SugzaKGxaI7JpMCE8w6rVKhTq9FlNR8B6'
+)
+ON DUPLICATE KEY UPDATE email = VALUES(email), password = VALUES(password);
+
+-- 3. Asignar el rol ADMIN al usuario
+INSERT INTO usuario_roles (usuario_id, rol_id)
+VALUES (
+    (SELECT id FROM usuarios WHERE nombre = 'admin' LIMIT 1),
+    (SELECT id FROM roles WHERE nombre = 'ROLE_ADMIN' LIMIT 1)
+)
+ON DUPLICATE KEY UPDATE usuario_id = VALUES(usuario_id), rol_id = VALUES(rol_id);

@@ -44,24 +44,28 @@ public class UsuarioService {
     }
 
     // Método de registro (sin cambios)
-    public boolean registrarUsuario(String usuario, String email, String password) {
-        try {
-
-
-            UserModel nuevoUsuario = new UserModel();
-            nuevoUsuario.setUsername(usuario);
-            nuevoUsuario.setEmail(email);
-            nuevoUsuario.setPassword(passwordEncoder.encode(password));
-
-            roleRepository.findByName("ROLE_USER").ifPresent(nuevoUsuario::addRole);
-            UserModel usuarioGuardado = userRepository.save(nuevoUsuario);
-
-            return usuarioGuardado != null && usuarioGuardado.getId() != null;
-        } catch (Exception e) {
-            e.printStackTrace();
+    public boolean registrarUsuario(String username, String email, String password) {
+        // Verificar si el usuario ya existe
+        if (userRepository.findByUsername(username).isPresent()) {
             return false;
         }
+        
+        // Crear nuevo usuario
+        UserModel newUser = new UserModel();
+        newUser.setUsername(username);
+        newUser.setEmail(email);
+        newUser.setPassword(passwordEncoder.encode(password));
+        
+        // Asignar rol por defecto
+        Role userRole = roleRepository.findByName("ROLE_USER")
+            .orElseThrow(() -> new RuntimeException("Error: Rol no encontrado."));
+        newUser.addRole(userRole);
+        
+        // Guardar usuario
+        userRepository.save(newUser);
+        return true;
     }
+
 
     public List<UserModel> obtenerTodosUsuarios() {
         return userRepository.findAll();
