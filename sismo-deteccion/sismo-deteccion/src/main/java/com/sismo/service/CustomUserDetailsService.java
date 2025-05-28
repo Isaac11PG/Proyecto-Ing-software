@@ -7,12 +7,16 @@ import org.springframework.stereotype.Service;
 
 import com.sismo.model.UserModel;
 import com.sismo.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.stream.Collectors;
 import java.util.List;
 
 @Service
+@Transactional
 public class CustomUserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
     private final UserRepository userRepository;

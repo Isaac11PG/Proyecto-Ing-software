@@ -12,7 +12,7 @@ public class UserModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "nombre", unique = true)  // Asegura que username sea único
+    @Column(name = "nombre", unique = true, nullable = false)  // Asegura que username sea único
     private String username;
     
     @Column(name = "email", unique = true)

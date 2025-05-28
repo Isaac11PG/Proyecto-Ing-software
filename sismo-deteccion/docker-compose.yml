@@ -8,7 +8,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: sismo_db
+      MYSQL_DATABASE: sismos_db
       MYSQL_USER: sismouser
       MYSQL_PASSWORD: sismopassword
     ports:
@@ -16,7 +16,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       # Agregamos un volumen para tu esquema SQL inicializador
-      - ./dbschema/:/docker-entrypoint-initdb.d/
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - sismo-network
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -41,7 +41,7 @@ services:
   # Backend Spring Boot
   backend:
     build:
-      context: ./backend
+      context: ./sismo-deteccion
       dockerfile: Dockerfile
     container_name: sismo-backend
     restart: always
@@ -50,32 +50,32 @@ services:
       - neo4j
     environment:
       # Configuración de MySQL
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sismo_db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sismos_db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: sismouser
+      SPRING_DATASOURCE_PASSWORD: sismopassword
       # Configuración de Neo4j
-      SPRING_DATA_NEO4J_URI: neo4j+s://e9c00bb8.databases.neo4j.io
+      SPRING_DATA_NEO4J_URI: bolt://neo4j:7687
       SPRING_DATA_NEO4J_USERNAME: neo4j
-      SPRING_DATA_NEO4J_PASSWORD: yCi1-OgWQWx8LF4xo7hSxqYhtB479uT4hIPutD5R4wY
+      SPRING_DATA_NEO4J_PASSWORD: password
       # Configuración JPA
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
     ports:
-      - "8080:8080"
+      - "80:8080"
     networks:
       - sismo-network
 
   # Frontend React
   frontend:
     build:
-      context: ./frontend
+      context: ./sismos-frontend
       dockerfile: Dockerfile
     container_name: sismo-frontend
     restart: always
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "3000:80"
     networks:
       - sismo-network
 

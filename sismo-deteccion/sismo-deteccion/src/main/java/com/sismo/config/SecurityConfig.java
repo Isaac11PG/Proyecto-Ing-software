@@ -7,10 +7,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserCache;
+import org.springframework.security.core.userdetails.cache.NullUserCache;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -18,8 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import com.sismo.interceptor.SessionDebugFilter;
+import com.sismo.service.CustomUserDetailsService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -27,12 +29,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final SessionDebugFilter sessionDebugFilter;
-
-    @Autowired
-    public SecurityConfig(SessionDebugFilter sessionDebugFilter) {
-        this.sessionDebugFilter = sessionDebugFilter;
-    }
+    private CustomUserDetailsService customUserDetailsService;
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,10 +47,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/registro").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/registro").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/home").permitAll() 
                 .requestMatchers("/api/sismos/**").permitAll()
                 .requestMatchers("/api/grafos/**").permitAll()
                 .requestMatchers("/api/usuarios/**").permitAll()
+                .requestMatchers("/api/propagation/**").permitAll()
                 
                 // Rutas protegidas
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -69,9 +68,11 @@ public class SecurityConfig {
             .exceptionHandling(handling -> handling
                 .authenticationEntryPoint((request, response, exception) -> {
                     System.out.println("Error de autenticación: " + exception.getMessage());
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\"error\":\"No autenticado\",\"message\":\"" + exception.getMessage() + "\"}");
+                   if (!response.isCommitted()) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"No autenticado\",\"message\":\"" + exception.getMessage() + "\"}");
+                    }
                 })
             )
             .logout(logout -> logout
@@ -80,10 +81,8 @@ public class SecurityConfig {
                     response.setStatus(HttpServletResponse.SC_OK);
                     response.setContentType("application/json");
                     response.getWriter().write("{\"message\":\"Cierre de sesión exitoso\"}");
-                })
-                .permitAll()
-            )
-            .addFilterBefore(sessionDebugFilter, UsernamePasswordAuthenticationFilter.class);
+                }).permitAll()
+            );
 
         return http.build();
     }
@@ -93,7 +92,12 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // Configura los orígenes permitidos
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        configuration.setAllowedOrigins(Arrays.asList(    "http://localhost", 
+    "http://localhost:80",
+    "http://frontend",
+    "http://frontend:80",
+    "http://localhost:3000",
+    "http://frontend:3000"));
 
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         
@@ -139,4 +143,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }   
+
 }
