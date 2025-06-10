@@ -1,4 +1,4 @@
-# Sistema de Alerta y Visualización de Sismos
+# Sistema de Visualización de Sismos
 
 ## Descripción del Proyecto
 Este es un proyecto de aplicación web el cual da varias opciones de visualización de datos sobre sismos el cual almacena los datos cargando un csv
