@@ -92,12 +92,13 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // Configura los orígenes permitidos
-        configuration.setAllowedOrigins(Arrays.asList(    "http://localhost", 
+        /*configuration.setAllowedOrigins(Arrays.asList(    "http://localhost", 
     "http://localhost:80",
     "http://frontend",
     "http://frontend:80",
     "http://localhost:3000",
     "http://frontend:3000"));
+        */
 
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         

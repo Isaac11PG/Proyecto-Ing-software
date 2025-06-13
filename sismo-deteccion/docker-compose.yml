@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Base de datos MySQL
   mysql:
@@ -60,8 +58,13 @@ services:
       # Configuración JPA
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+      # CORS para aplicaciones móviles
+      SPRING_WEB_CORS_ALLOWED_ORIGINS: "*"
+      SPRING_WEB_CORS_ALLOWED_METHODS: "GET,POST,PUT,DELETE,OPTIONS"
+      SPRING_WEB_CORS_ALLOWED_HEADERS: "*"
+      SPRING_WEB_CORS_ALLOW_CREDENTIALS: "true"
     ports:
-      - "80:8080"
+      - "8080:8080"
     networks:
       - sismo-network
 
