@@ -1,4 +1,4 @@
-export const BASE_URL = "http://10.100.88.241:8080";
+export const BASE_URL = "http://10.100.82.194:8080";
 
 export const API_ENDPOINTS = {
   // Autenticación
