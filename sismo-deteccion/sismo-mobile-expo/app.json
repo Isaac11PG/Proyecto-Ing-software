@@ -20,13 +20,22 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.sismomobileexpo"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-maps"
+      "expo-dev-client",
+      [
+        "expo-maps",
+        {
+          "config": {
+            "googleMapsApiKey": "AIzaSyD8b1k2Z3X9Y4z5F6G7H8J9K0L1M2N3O4P"
+          }
+        }
+      ]
     ]
   }
 }

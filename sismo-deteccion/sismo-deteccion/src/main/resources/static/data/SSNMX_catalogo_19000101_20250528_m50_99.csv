@@ -1,7 +1,3 @@
-"Catalogo de sismos - Servicio Sismologico Nacional (SSN) | UNAM - Mexico. DOI: 10.21766/SSNMX/EC/MX"
-"Informacion sujeta a cambios. Archivo generado el 2025-05-28 a las 13:27:47 (tiempo del centro de Mexico)."
-"Sismicidad del 1900-01-01 al 2025-05-28, mag. 5.0 a 9.9, todas las profundidades, en todo el pais."
-"Total: 1852 eventos."
 Fecha,Hora,Magnitud,Latitud,Longitud,Profundidad,"Referencia de localizacion","Fecha UTC","Hora UTC","Estatus"
 1900-01-20,00:33:30,7.4,20.0,-105.0,33.0,"71 km al NOROESTE de AUTLAN DE NAVARRO, JAL",1900-01-20,06:33:30,revisado
 1900-05-16,14:12:00,6.9,20.0,-105.0,33.0,"71 km al NOROESTE de AUTLAN DE NAVARRO, JAL",1900-05-16,20:12:00,revisado
@@ -1855,10 +1851,3 @@ Fecha,Hora,Magnitud,Latitud,Longitud,Profundidad,"Referencia de localizacion","F
 2025-05-27,15:59:13,5.8,19.524,-108.861,10.0,"388 km al SURESTE de CABO SAN LUCAS, BCS ",2025-05-27,21:59:13,verificado
 2025-05-27,19:30:37,5.9,19.636,-109.017,5.0,"372 km al SUR de CABO SAN LUCAS, BCS ",2025-05-28,01:30:37,verificado
 2025-05-28,03:01:42,5.4,19.536,-109.056,10.0,"382 km al SUR de CABO SAN LUCAS, BCS ",2025-05-28,09:01:42,verificado
-"Fecha y hora local en tiempo del centro de Mexico. Coordenadas geograficas (latitud y longitud) del epicentro en grados decimales. Profundidad en kilometros."
-"La localizacion es solo una referencia a una localidad importante en cuanto a numero de habitantes y cercana al epicentro."
-"Los registros con estatus verificado son los calculados y publicados de manera oportuna por al menos un analista de sismogramas."
-"Los registros obtienen estatus revisado cuando se realiza un analisis, de ser posible, con mas y mejores datos para el calculo de parametros y cuyo tiempo de publicacion es variable."
-"Esta informacion puede ser reproducida con fines no lucrativos siempre y cuando se mencione como fuente al Servicio Sismologico Nacional. De otra forma, requiere permiso previo por escrito de la institucion."
-"Consulta nuestro Aviso Legal y Terminos de Uso en: www.ssn.unam.mx/aviso-legal"
-"www.ssn.unam.mx | contacto@sismologico.unam.mx | 5622 2222 ext. 38706 (reportes de sismicidad), 38700 y 38701 (area administrativa)."
